@@ -1,0 +1,30 @@
+<!---->
+<%- include("partials/header") -%>
+    <h1>Home</h1>
+    <p>
+        <%=homeContent%>
+    </p>
+
+
+    <% posts.forEach(function(element) { %>
+        <!--post is been render from app,js-->
+        <h1>
+            <%= element.tittle %>
+                <!---->
+        </h1>
+        <p>
+            <%= element.publish.substring(0,100)+ "...." %>
+                <!--substring is used to truncat the content. It can also be used in the ejs <%= %> symbols-->
+                <a href="/posts/<%=element.tittle%>" role="button">Read More</a>
+                <!--href is used to redirect to the specided route-->
+        </p>
+
+        <% }); %>
+
+
+
+            <%- include("partials/footer") -%>
+
+
+
+                <!--home.ejs is the home page-->>
