@@ -4,6 +4,20 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const _ = require("lodash"); // it used for configuring the string like lowercase and uppercase conversion
+const mongoose = require("mongoose");
+
+/*--------------------------Step1:-making connection---------------------------------------- */
+
+mongoose.connect("mongodb://localhost:27017/composeDB", { useNewUrlParser: true });
+
+/*--------------------------DB Schema---------------------------------------------------- */
+const composeSchema = new mongoose.Schema({
+    tittle: String,
+    publish: String
+});
+
+/*-----------------------------DB model-------------------------------------------------- */
+const compose = mongoose.model("Compose", composeSchema)
 
 /*-----------------WebContent-------------------------*/
 
@@ -18,14 +32,18 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public")); // to use Css content present in Public folder
 
-/*-------------------Global Variable----------------------- */
 
-const PostFinal = [];
+
 
 /*----------------------get request------------------------ */
 
 app.get("/", function(req, res) {
-    res.render("home", { homeContent: homeStartingContent, posts: PostFinal });
+    compose.find({}, function(err, posts) {
+        if (!err) {
+            res.render("home", { homeContent: homeStartingContent, posts: posts });
+        }
+    });
+
 });
 
 app.get("/about", function(req, res) {
@@ -40,33 +58,27 @@ app.get("/compose", function(req, res) {
     res.render("compose");
 });
 
-app.get("/posts/:item", function(req, res) { //
-    const requestedPost = _.lowerCase(req.params.item); //_.lowerCase function from lodash library
+app.get("/posts/:postId", function(req, res) { //
+    const requestedPostId = req.params.postId;
 
-
-    for (let i = 0; i < PostFinal.length; i++) {
-
-        const storedPost = _.lowerCase(PostFinal[i].tittle); //
-
-        if (requestedPost === storedPost) {
-            const postTittle = PostFinal[i].tittle; //stroing tittle
-            const postContent = PostFinal[i].publish; //storing content
-            res.render("post", { tittleChoosen: postTittle, ContentChoosen: postContent }); // rendering the values into post page
-
-        }
-    }
+    compose.findOne({ tittle: requestedPostId }, function(err, post) {
+        res.render("post", {
+            tittleChoosen: post.tittle,
+            ContentChoosen: post.publish
+        });
+    });
 });
-
 
 /*---------------------------post request------------------*/
 app.post("/compose", function(req, res) {
 
-    var post1 = {
-            tittle: req.body.TittleText,
-            publish: req.body.PublishText
-        }
-        //object creation
-    PostFinal.push(post1);
+    let post1 = new compose({
+        tittle: req.body.TittleText,
+        publish: req.body.PublishText
+    });
+    //object creation
+
+    post1.save();
     res.redirect("/");
     //redirect to home page;
 
